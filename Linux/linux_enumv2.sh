@@ -198,17 +198,18 @@ get_installed_programs() {
 find_active_connections() {
     echo -e "${bold_blue}Active Network Connections${reset}"
 
-    if command -v netstat &> /dev/null; then
+    if command -v ss &> /dev/null; then
+        echo -e "${bold_yellow}Using ss:${reset}"
+        ss -tunap | awk '
+        BEGIN {print "Proto\tLocal Address\t\tRemote Address\t\tState\t\tPID/Program"}
+        NR>1 {printf "%-6s %-22s %-22s %-14s %-20s\n", $1, $5, $6, $2, $7}'
+    
+    elif command -v netstat &> /dev/null; then
         echo -e "${bold_yellow}Using netstat:${reset}"
         netstat -tunap | awk '
         BEGIN{print "Proto\tLocal Address\t\tRemote Address\t\tState\t\tPID/Program"}
         /Proto/ {next}
         {printf "%-6s %-22s %-22s %-14s %-20s\n", $1, $4, $5, $6, $7}'
-    elif command -v ss &> /dev/null; then
-        echo -e "${bold_yellow}Using ss:${reset}"
-        ss -tunap | awk '
-        BEGIN {print "Proto\tLocal Address\t\tRemote Address\t\tState\t\tPID/Program"}
-        NR>1 {printf "%-6s %-22s %-22s %-14s %-20s\n", $1, $5, $6, $2, $7}'
     else
         echo "Neither netstat nor ss is available."
     fi
