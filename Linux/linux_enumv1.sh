@@ -189,4 +189,22 @@ get_filtered_ip(){
 	echo -e "\nMAC Address:\n    $mac_addresses"
 }
 
-get_filtered_ip
+find_active_connections() {
+        if command -v netstat > /dev/null; then
+                echo "using netstat"
+                netstat -tunap | awk '
+                BEGIN{print "Proto\tLocal Address\t\tRemote Address\t\tState\t\tPID/Program"}
+                /Proto/ {next}
+                {printf "%-6s %-22s %-22s %-14s %-20s\n", $1, $4, $5, $6, $7}'
+
+        elif command -v ss > /dev/null; then
+                echo "using ss"
+                ss -tunap | awk '
+                BEGIN {print "Proto\t\Local Address\t\tRemote Address\t\tState\t\tPID/Program"}
+                NR>1 {printf "%-6s %-22s %-22s %-14s %-20s\n", $1, $5, $6, $2, $7}'
+
+        else
+                return 1
+        fi
+}
+
