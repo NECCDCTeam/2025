@@ -8,6 +8,12 @@ $computers = Get-ADComputer -Filter * -Properties * -Credential $credentials
 $desktopPath = [Environment]::GetFolderPath("Desktop")
 $outputFolder = Join-Path $desktopPath "WindowsInventory"
 
+# Create folder on C: drive of remote machine
+$remoteFolderPath = "C:\WindowsInventory"
+if (!(Test-Path $remoteFolderPath)) {
+    New-Item -ItemType Directory -Path $remoteFolderPath
+}
+
 # Create output folder
 if (!(Test-Path $outputFolder)) {
     New-Item -ItemType Directory -Path $outputFolder
@@ -20,6 +26,14 @@ foreach ($computer in $computers) {
         $computerFolder = Join-Path $outputFolder $computer.Name
         if (!(Test-Path $computerFolder)) {
             New-Item -ItemType Directory -Path $computerFolder
+        }
+
+        # Create folder on remote machine's C: drive
+        Invoke-Command -ComputerName $computer.Name -Credential $credentials -ScriptBlock {
+            $remoteFolderPath = "C:\WindowsInventory"
+            if (!(Test-Path $remoteFolderPath)) {
+                New-Item -ItemType Directory -Path $remoteFolderPath
+            }
         }
 
         # Get Scheduled Tasks that are enabled or running

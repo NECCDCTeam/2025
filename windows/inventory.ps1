@@ -11,6 +11,12 @@ $computers = Get-ADComputer -Filter * -Properties * -Credential $credentials
 $desktopPath = [Environment]::GetFolderPath("Desktop")
 $outputFolder = Join-Path $desktopPath "WindowsInventory"
 
+# Create folder on C: drive of each remote machine
+$remoteFolderPath = "C:\WindowsInventory"
+if (!(Test-Path $remoteFolderPath)) {
+    New-Item -ItemType Directory -Path $remoteFolderPath
+}
+
 # Create output folder
 if (!(Test-Path $outputFolder)) {
     New-Item -ItemType Directory -Path $outputFolder
@@ -23,6 +29,14 @@ foreach ($computer in $computers) {
         $computerFolder = Join-Path $outputFolder $computer.Name
         if (!(Test-Path $computerFolder)) {
             New-Item -ItemType Directory -Path $computerFolder
+        }
+
+        # Create folder on remote machine's C: drive
+        Invoke-Command -ComputerName $computer.Name -Credential $credentials -ScriptBlock {
+            $remoteFolderPath = "C:\WindowsInventory"
+            if (!(Test-Path $remoteFolderPath)) {
+                New-Item -ItemType Directory -Path $remoteFolderPath
+            }
         }
     
         # Get IP address info
@@ -60,29 +74,29 @@ foreach ($computer in $computers) {
         # Get Server Roles, Features, and Capabilities
         $RolesFeaturesCapabilities = ""
 
-    if ($productType -eq 1) {
-        # For client OS (ProductType = 1), get only Windows Capabilities
-        $installedWindowsCapabilities = Invoke-Command -ComputerName $computer.Name -Credential $credentials -ScriptBlock {
-            Get-WindowsCapability -Online | Where-Object { $_.State -eq "Installed" } | Select-Object -ExpandProperty Name
+        if ($productType -eq 1) {
+            # For client OS (ProductType = 1), get only Windows Capabilities
+            $installedWindowsCapabilities = Invoke-Command -ComputerName $computer.Name -Credential $credentials -ScriptBlock {
+                Get-WindowsCapability -Online | Where-Object { $_.State -eq "Installed" } | Select-Object -ExpandProperty Name
+            }
+            
+            # Add capabilities to the consolidated string
+            $RolesFeaturesCapabilities = $installedWindowsCapabilities -join "`n"
+            
+        } else {
+            # For server OS get both Roles and Features and Windows Capabilities
+            $installedRolesAndFeatures = Invoke-Command -ComputerName $computer.Name -Credential $credentials -ScriptBlock {
+                Get-WindowsFeature | Where-Object { $_.InstallState -eq "Installed" } | Select-Object -ExpandProperty DisplayName
+            }
+            $installedWindowsCapabilities = Invoke-Command -ComputerName $computer.Name -Credential $credentials -ScriptBlock {
+                Get-WindowsCapability -Online | Where-Object { $_.State -eq "Installed" } | Select-Object -ExpandProperty Name
+            }
+            
+            # Combine roles/features and capabilities into the consolidated string
+            $RolesFeaturesCapabilities = $installedRolesAndFeatures -join "`n"
+            $RolesFeaturesCapabilities += "`n-----------------------------Windows Capabilities-----------------------------`n"
+            $RolesFeaturesCapabilities += $installedWindowsCapabilities -join "`n"
         }
-        
-        # Add capabilities to the consolidated string
-        $RolesFeaturesCapabilities = $installedWindowsCapabilities -join "`n"
-        
-    } else {
-        # For server OS get both Roles and Features and Windows Capabilities
-        $installedRolesAndFeatures = Invoke-Command -ComputerName $computer.Name -Credential $credentials -ScriptBlock {
-            Get-WindowsFeature | Where-Object { $_.InstallState -eq "Installed" } | Select-Object -ExpandProperty DisplayName
-        }
-        $installedWindowsCapabilities = Invoke-Command -ComputerName $computer.Name -Credential $credentials -ScriptBlock {
-            Get-WindowsCapability -Online | Where-Object { $_.State -eq "Installed" } | Select-Object -ExpandProperty Name
-        }
-        
-        # Combine roles/features and capabilities into the consolidated string
-        $RolesFeaturesCapabilities = $installedRolesAndFeatures -join "`n"
-        $RolesFeaturesCapabilities += "`n-----------------------------Windows Capabilities-----------------------------`n"
-        $RolesFeaturesCapabilities += $installedWindowsCapabilities -join "`n"
-    }
 
         # Save network and system info to file
         [PSCustomObject]@{
