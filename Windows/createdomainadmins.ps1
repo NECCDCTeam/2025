@@ -17,11 +17,11 @@ foreach ($account in $AdminAccounts) {
         # Create the user account
         New-ADUser -Name $account.Name `
                    -SamAccountName $account.Username `
-                   -UserPrincipalName "$($account.Username)@yourdomain.com" `
+                   -UserPrincipalName "$($account.Username)@SECURENETWORK.com" # change hard coded
                    -AccountPassword $SecurePassword `
                    -Enabled $true `
                    -PasswordNeverExpires $true `
-                   -Path "CN=Users,DC=yourdomain,DC=com" # Change to your target OU if needed
+                   -Path "CN=Users,DC=SECURENETWORK.com,DC=DC-01" # change hard coded
         
         # Add the user to the Domain Admins group
         Add-ADGroupMember -Identity "Domain Admins" -Members $account.Username
@@ -32,3 +32,5 @@ foreach ($account in $AdminAccounts) {
         Write-Output "An error occurred while creating the account '$($account.Username)': $_"
     }
 }
+# fix issue with enabaling accoutns and adding them to the domain admins group 
+# fix issue with -AccountPassword $SecurePassword  flag
