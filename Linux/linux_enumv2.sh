@@ -269,6 +269,12 @@ get_all_users_info() {
     echo -e "\n"
 }
 
+get_all_sockets(){
+        echo -e "${bold_blue}All Sockets${reset}"
+        lsof -i -P -n | awk 'NR==1 {print "\033[1;36m" $0 "\033[0m"} NR>1 {print $0}'
+
+}
+
 
 main() {
     echo -e "${bold_white}System Enumeration Script:${reset}"
@@ -282,8 +288,14 @@ main() {
     find_active_connections
     get_user_info
     get_all_users_info
+    get_all_sockets
 }
 
 # Execute the main function
+if [[ $EUID -ne 0 ]]; then
+        echo -e "${bold_red}Error: This script must be run as root.${reset}"
+        exit 1
+fi
+
 main
  
