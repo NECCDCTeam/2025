@@ -6,7 +6,7 @@ sudo apt update && sudo apt upgrade -y
 
 # Install Python and required build tools
 echo "Installing Python and dependencies..."
-sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential
+sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential sshpass
 
 # Upgrade pip to the latest version
 echo "Upgrading pip..."
@@ -19,8 +19,6 @@ sudo pip install ansible
 # Verify installation
 echo "Verifying Ansible installation..."
 ansible --version
-
-# Optional: Cleanup
 echo "Cleaning up unnecessary packages..."
 sudo apt autoremove -y
 
