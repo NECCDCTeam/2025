@@ -21,6 +21,7 @@ if [ ! -f "$HOSTS_FILE" ]; then
     echo "Creating hosts file at $HOSTS_FILE..."
     echo "[all]" > "$HOSTS_FILE"
     echo "Hosts file created."
+fi
 
 copy_ssh_key() {
     local client_ip="$1"
@@ -55,3 +56,5 @@ while true; do
                 echo "$client_ip already exists in hosts file."
         fi
 done
+
+

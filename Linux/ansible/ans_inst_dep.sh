@@ -23,3 +23,26 @@ echo "Cleaning up unnecessary packages..."
 sudo apt autoremove -y
 
 echo "Ansible installation completed successfully!"
+
+# Create the new control user
+USERNAME="Playbook_King"
+PASSWORD="V~4y5z@&_#*TJnL8G]R("
+
+if id "$USERNAME" &>/dev/null; then
+        echo "User $USERNAME already exists"
+else
+        useradd -m -s /bin/bash "$USERNAME"
+        echo "$USERNAME:$PASSWORD" | chpasswd
+        echo "User $USERNAME created and password set."
+fi
+
+# Add the user to the sudoers file for root privileges
+if grep -q "$USERNAME" /etc/sudoers; then
+  echo "User $USERNAME already has sudo privileges."
+else
+  echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+  echo "User $USERNAME granted sudo privileges."
+fi
+
+su - "$USERNAME"
+
