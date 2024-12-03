@@ -9,6 +9,9 @@ Below is a list of things that should be completed as soon as you log onto a mac
 - If it is a server, get the type and roles and features
 - View the active connections, i.e., SSH, TCP, and RDP
 - Check the system time
+- check windows defeneder 
+    - check exclusions 
+- check for ssh sessions
 
 ## Enumeration
 
