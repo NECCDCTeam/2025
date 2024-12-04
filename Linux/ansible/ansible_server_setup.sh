@@ -50,7 +50,7 @@ while true; do
         if ! grep -q "$client_ip" "$HOSTS_FILE"; then
                 # Add the client to the hosts file
                 echo "Adding $client_ip to hosts file..."
-                echo "$client_ip ansible_user=ansible_client ansible_ssh_private_key_file=~/.ssh/id_rsa ansible_python_interpreter=/usr/bin/python3" >> "$HOSTS_FILE"
+		echo "$client_ip ansible_user=$HARD_CODED_U ansible_ssh_private_key_file=$SSH_KEY ansible_python_interpreter=/usr/bin/python3" >> "$HOSTS_FILE"
                 echo "$client_ip added to hosts file."
         else
                 echo "$client_ip already exists in hosts file."

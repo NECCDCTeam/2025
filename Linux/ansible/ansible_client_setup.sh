@@ -42,26 +42,55 @@ else
   echo "User $USERNAME granted sudo privileges."
 fi
 
-# Install Python 3 if not already installed
+# GOOFY PYTHON SECTION BECAUSE ANSIBLE IS PICKY AS HELL
+# --------------------------------------------------------------------------
+# Install Python 3.8.10 if not already installed
 if command -v python3 &>/dev/null; then
-  echo "Python 3 is already installed."
-else
-  echo "Installing Python 3..."
-  if command -v apt &>/dev/null; then
-    apt update && apt install -y python3
-  elif command -v yum &>/dev/null; then
-    yum install -y python3
-  elif command -v dnf &>/dev/null; then
-    dnf install -y python3
-  elif command -v zypper &>/dev/null; then
-    zypper install -y python3
-  elif command -v pacman &>/dev/null; then
-    pacman -Syu --noconfirm python3
+  installed_version=$(python3 --version 2>&1 | awk '{print $2}')
+  if [[ "$installed_version" == "3.8.10" ]]; then
+    echo "Python 3.8.10 is already installed."
   else
-    echo "Package manager not detected. Please install Python 3 manually." >&2
+    echo "A different version of Python 3 is installed. Installing Python 3.8.10..."
+    # Uninstall all other versions of Python 3
+    echo "Removing other versions of Python 3..."
+    if command -v apt &>/dev/null; then
+      apt-get remove -y python3 && apt-get autoremove -y
+      apt-get install -y python3.8
+    elif command -v yum &>/dev/null; then
+      yum remove -y python3 && yum install -y python3.8
+    elif command -v dnf &>/dev/null; then
+      dnf remove -y python3 && dnf install -y python3.8
+    elif command -v zypper &>/dev/null; then
+      zypper remove -y python3 && zypper install -y python3.8
+    elif command -v pacman &>/dev/null; then
+      pacman -Rns --noconfirm python3 && pacman -Syu --noconfirm python3.8
+    else
+      echo "Package manager not detected. Please install Python 3.8.10 manually." >&2
+      exit 1
+    fi
+  fi
+else
+  echo "Installing Python 3.8.10..."
+  # Uninstall all other versions of Python 3
+  echo "Removing other versions of Python 3..."
+  if command -v apt &>/dev/null; then
+    apt-get remove -y python3 && apt-get autoremove -y
+    apt-get install -y python3.8
+  elif command -v yum &>/dev/null; then
+    yum remove -y python3 && yum install -y python3.8
+  elif command -v dnf &>/dev/null; then
+    dnf remove -y python3 && dnf install -y python3.8
+  elif command -v zypper &>/dev/null; then
+    zypper remove -y python3 && zypper install -y python3.8
+  elif command -v pacman &>/dev/null; then
+    pacman -Rns --noconfirm python3 && pacman -Syu --noconfirm python3.8
+  else
+    echo "Package manager not detected. Please install Python 3.8.10 manually." >&2
     exit 1
   fi
 fi
+# --------------------------------------------------------------------------
+
 
 # Ensure SSH is installed and running
 if systemctl is-active --quiet "SSH_SERVICE"; then
